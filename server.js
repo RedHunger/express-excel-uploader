@@ -1,29 +1,37 @@
-var express = require('express');
-var app = express();
-app.set('port', process.env.PORT || 3000);
+var http = require('http');
+var fs = require("fs");
+var data = 'Update current file';
 
-app.get('/', function(req, res) {
-	res.type('text/plain');
-	res.send('Meadowlark Travel');
-});
-app.get('/about', function(req, res) {
-	res.type('text/plain');
-	res.send('О Meadowlark Travel');
-});
+// Create a readable stream
+var readerStream = fs.createReadStream('file.txt');
+var writerStream = fs.createWriteStream('file.txt');
+var server = http.createServer(function(req, res) {
+    // Set the encoding to be utf8. 
+    readerStream.setEncoding('UTF8');
 
-app.use(function(req, res, next) {
-			res.type('text/plain');
-			res.status(404);
-			res.send('404 — Не найдено');
-			});
-app.use(function(err, req, res, next) {
-	console.error(err.stack);
-	res.type('text/plain');
-	res.status(500);
-	res.send('500 — Ошибка сервера');
-});
+    // Handle stream events --> data, end, and error
+    readerStream.on('data', function(chunk) {
+        data += chunk;
+    });
 
-app.listen(app.get('port'), function() {
-	console.log('Express запущен на http://localhost:' +
-		app.get('port') + '; нажмите Ctrl+C для завершения.');
+    readerStream.on('end', function() {
+        console.log(data);
+    });
+
+    readerStream.on('error', function(err) {
+        console.log(err.stack);
+    });
+
+    writerStream.write(data,'UTF8');
+
+    writerStream.on('finish', function() {
+        console.log("Write completed.");
+    });
+
+    writerStream.on('error', function(err) {
+        console.log(err.stack);
+    });
+
 });
+server.listen(8000);
+console.log("Go to server");
