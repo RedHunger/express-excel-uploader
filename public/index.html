@@ -1,0 +1,22 @@
+<html ng-app>
+<head>
+	<meta charset="UTF-8">
+	<title>Main Page</title>
+	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.9/angular.min.js"></script>
+</head>
+
+<body>
+	<h1>Hey, please upload your file</h1>
+	<form ref='uploadForm'
+		  id='uploadForm'
+		  action='http://localhost:8000/upload'
+		  method='post'
+		  encType="multipart/form-data">
+		<input type="file" name="sampleFile" />
+		<input type='submit' value='Upload!' />
+	</form>
+
+
+
+</body>
+</html>
