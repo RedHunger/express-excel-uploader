@@ -1,18 +1,27 @@
 var express = require('express');
 var router = express.Router();
-var path = require('path');
 var XLSX = require('xlsx');
-var data = [];
-var jsonData = [];
-var testData = 0;
 var forEach = require('lodash.foreach');
+var _ = require('lodash');
+var bodyParser  = require('body-parser');
+var jsondata = [];
+var data = [ {fileName: "file.txt", date: Date.now()},{fileName: "text.txt", date: Date.now()}];
+var fileUpload = require('express-fileupload');
 
-router.use('/*', express.static('public/index.html'));
-router.use('/upload', fileUpload());
-router.get('/list', function(req, res) {
-    res.json(jsonData);
+router.use(bodyParser.urlencoded());
+router.use(bodyParser.json());
+
+router.use(express.static('public'));
+router.use('/static', express.static('public/index.html'));
+
+router.use('/info', fileUpload());
+
+router.post('/add', function(req, res){
+    res.send(req.body);
 });
-router.post('/upload', function(req, res) {
+
+router.post('/info',function (req, res) {
+
     var sampleFile;
     sampleFile = req.files;
     if (!req.files) {
@@ -48,8 +57,7 @@ router.post('/upload', function(req, res) {
 
         data.push({
             name: req.files.sampleFile["name"],
-            browse: 'uppload/' + req.files.sampleFile["name"],
-            sum: testData
+            TimeStamp: 0
         });
 
         jsonData = JSON.stringify(data);
@@ -59,11 +67,13 @@ router.post('/upload', function(req, res) {
         }
         else {
             res.send('File uploaded!');
-            
+
         }
     });
 
-});
+    res.json(jsonData);
+} );
+
 
 router.get('/', function (req, res, next) {
     res.end("URL: " + req.url);

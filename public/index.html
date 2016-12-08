@@ -1,8 +1,8 @@
-<html ng-app>
+<html>
 <head>
 	<meta charset="UTF-8">
 	<title>Main Page</title>
-	<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.9/angular.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
 </head>
 
 <body>
@@ -12,10 +12,68 @@
 		  action='http://localhost:8000/upload'
 		  method='post'
 		  encType="multipart/form-data">
-		<input type="file" name="sampleFile" />
-		<input type='submit' value='Upload!' />
+		<input id="fileField" type="file" name="sampleFile" />
+		<input id="sendFileButton" type='button' value='Upload!' />
 	</form>
 
+	<div>
+		<span class="content_name"></span></br>
+		<span class="content_date"></span>
+
+		<ul class="list">
+
+		</ul>
+	</div>
 
 </body>
+<script>
+//	var button = document.getElementById('sendFileButton');
+//	var fileField = document.getElementById('fileField');
+//	button.addEventListener('click', function() {
+//		console.dir(fileField);
+//	});
+
+	$(window).on('load',function () {
+		$.ajax({
+			type: 'POST',
+			contentType: 'application/json',
+			url: 'http://127.0.0.1:8000/info',
+			success: function(response) {
+				console.log(response);
+//				if (response != 'No files were uploaded.' ) {
+					for (var i = 0; i < response.length; i++) {
+						$('.list').append('<li>'+'Name: '+response[i]['fileName'] + '<br>' + ' TimeStamp: '  + response[i]['date'] + '</li>');
+
+					}
+
+//				}
+			}
+		});
+
+	});
+
+	$(document).ready(function () {
+		$('#sendFileButton').on('click', function () {
+			var data = {
+				fileName : $('#fileField').get(0).files[0].name,
+				fileTimeStamp: $('#fileField').get(0).files[0].lastModified,
+			};
+
+			$.ajax({
+				type: 'POST',
+				data: JSON.stringify(data),
+				contentType: 'application/json',
+				url: 'http://127.0.0.1:8000/add',
+				success: function(data) {
+					$('.content_name').text("Name: "+ data.fileName);
+					$('.content_date').text("TimeStamp: "+ data.fileTimeStamp);
+				}
+			});
+		});
+	});
+
+
+
+
+</script>
 </html>
