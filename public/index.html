@@ -9,7 +9,7 @@
 	<h1>Hey, please upload your file</h1>
 	<form ref='uploadForm'
 		  id='uploadForm'
-		  action='http://localhost:8000/upload'
+		  action='http://127.0.0.1:8000/upload'
 		  method='post'
 		  encType="multipart/form-data">
 		<input id="fileField" type="file" name="sampleFile" />
@@ -69,8 +69,28 @@
 					$('.content_date').text("TimeStamp: "+ data.fileTimeStamp);
 				}
 			});
+			$("#uploadForm").submit();
+
+			$.ajax({
+				type: 'POST',
+				data: JSON.stringify(data),
+				contentType: 'application/json',
+				url: 'http://127.0.0.1:8000/upload',
+				success: function(data) {
+					alert('ulr=../upload');
+
+				}
+			});
+
+
+
 		});
+
+
+
 	});
+
+
 
 
 
