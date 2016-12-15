@@ -1,6 +1,5 @@
 module.exports = {
-    context: __dirname + "/public/",
-    entry: "/main.js",
+    entry: "./public/main",
     output: {
         filename: 'build.js'
     },

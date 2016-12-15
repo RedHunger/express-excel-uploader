@@ -1,17 +1,22 @@
 var express = require('express');
 var router = express.Router();
-var XLSX = require('xlsx');
 var path = require('path');
-var forEach = require('lodash.foreach');
-var _ = require('lodash');
+var multer  = require('multer');
 var bodyParser  = require('body-parser');
-var fileUpload = require('express-fileupload');
 var firebase = require('firebase');
 var admin = require("firebase-admin");
-var jsondata = [];
-var setValueData = 0;
-var data = [ {fileName: "file.txt", date: Date.now()},{fileName: "text.txt", date: Date.now()}];
+var jsonData;
 var serviceAccount = require(path.join(__dirname,"/../express-upload-db-firebase-adminsdk-0xyvq-6ce9c46535.json"));
+var storage = multer.diskStorage({
+    destination: './upload',
+    filename: function (req, file, cb) {
+        cb(null, "excel_file" + '-' + Date.now())
+    }
+});
+var upload = multer({ storage: storage });
+
+router.use(bodyParser.urlencoded());
+router.use(bodyParser.json());
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -20,102 +25,42 @@ admin.initializeApp({
 
 var db = admin.database();
 var ref = db.ref("restricted_access/secret_document");
-var usersRef = ref.child("First User");
+var usersRef = ref.child("files");
 
 function getDB () {
     ref.once("value", function (snapshot) {
-        jsonData = snapshot.val()
-        console.log("db:"+ jsonData);
+        jsonData = snapshot.val();
     });
 }
 getDB();
 
-router.use(bodyParser.urlencoded());
-router.use(bodyParser.json());
-
 router.use(express.static('public'));
 router.use('/static', express.static('public/index.html'));
 router.post('/info', function(req, res) {
-    res.json(data);
+    res.send(jsonData);
 });
 
 router.post('/add', function(req, res){
-
-    data.push({
-        fileName: req.body.fileName,
-        date: req.body.fileTimeStamp,
-
-    });
-
-    jsonData = JSON.stringify(data);
     res.send(req.body);
 });
 
-router.use(fileUpload());
-router.post('/upload',function (req, res) {
+router.use(multer({ storage: storage }).single("sampleFile"));
 
-    // console.log('I am here');
-    console.log(req.files);
-    if (!req.files) {
-        res.status(400).send('No files were uploaded.');
-        return;
-    }
+router.post('/upload', upload.single("sampleFile"), function (req, res) {
+    var uploadedFile;
+    uploadedFile = req.file;
 
-    sampleFile = req.files.sampleFile;
-    sampleFile.mv("./uppload/"+ req.files.sampleFile["name"], function(err) {
-
-        var workbook = XLSX.readFile('./uppload/' + req.files.sampleFile["name"]);
-        var inputData = workbook.Sheets.Лист1;
-        var testData = 0;
-        var column = '';
-        function searchColumn(input){
-            forEach(input, function(value, key){
-                if (value.v === 'Стоимость') {
-                    column = key.charAt(0);
-                }
-            })
+    usersRef.push(
+        {
+            name: uploadedFile.originalname,
+            time:  Date.now(),
         }
-        function setValueDB (input) {
-            forEach(input, function(value, key) {
-                if(key.charAt(0) === column){
-                    if(typeof(value.v) === 'number'){
-                        setValueData += value.v
-                    }
-                }
-            });
-        }
-
-        searchColumn(inputData);
-        setValueDB(inputData);
-
-        data.push({
-            name: req.files.sampleFile["name"],
-            TimeStamp: 0,
-            sum: setValueData
-        });
-
-        usersRef.push(
-            {
-                name: req.files.sampleFile["name"],
-                sum: setValueData
-            }
-        ).then(function (err, result) {
-            getDB();
-        });
-
-
-        console.log(data);
-        jsonData = JSON.stringify(data);
-
-
-        if (err) {
-            res.status(500).send(err);
-        }
-        else {
-            res.send('File uploaded!');
-
-        }
+    ).then(function (err, result) {
+        getDB();
     });
+
+    res.send('File uploaded!');
+
 } );
 
 
