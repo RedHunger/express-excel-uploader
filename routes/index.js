@@ -15,6 +15,8 @@ var storage = multer.diskStorage({
 });
 var upload = multer({ storage: storage });
 
+// var upload = multer({ dest: './upload' });
+
 router.use(bodyParser.urlencoded());
 router.use(bodyParser.json());
 
@@ -44,22 +46,27 @@ router.post('/add', function(req, res){
     res.send(req.body);
 });
 
-router.use(multer({ storage: storage }).single("sampleFile"));
 
-router.post('/upload', upload.single("sampleFile"), function (req, res) {
+router.post('/upload', upload.array('file[]'), function (req, res) {
     var uploadedFile;
-    uploadedFile = req.file;
+    uploadedFile = req.files[0];
+
+    if (!req.files) {
+        res.send('No files were uploaded.');
+        return;
+    }
 
     usersRef.push(
         {
             name: uploadedFile.originalname,
-            time:  Date.now(),
+            size:  uploadedFile.size + 'kb',
         }
     ).then(function (err, result) {
         getDB();
     });
 
-    res.send('File uploaded!');
+
+    res.send(req.files);
 
 } );
 
