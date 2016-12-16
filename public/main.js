@@ -32,8 +32,8 @@ $(document).ready(function () {
             contentType: 'application/json',
             url: 'http://127.0.0.1:8000/add',
             success: function(data) {
-                $('.content_name').text("Name: "+ data.fileName);
-                $('.content_date').text("TimeStamp: "+ data.fileTimeStamp);
+                $('.content_name').text("Name: "+ data[0].name);
+                $('.content_date').text("TimeStamp: "+ data[0].time);
                 ajaxInfo();
             },
 
